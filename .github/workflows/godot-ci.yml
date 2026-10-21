@@ -1,0 +1,67 @@
+name: Godot CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: godot-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Import and regression tests (Godot 4.7.2)
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      GODOT_VERSION: '4.7.2'
+
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Download official Godot build
+        id: godot
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $archive = Join-Path $env:RUNNER_TEMP 'godot-win64.zip'
+          $tools = Join-Path $env:RUNNER_TEMP 'godot'
+          $url = "https://downloads.godotengine.org/?version=$($env:GODOT_VERSION)&flavor=stable&platform=windows.64&slug=win64.exe.zip"
+
+          Invoke-WebRequest -Uri $url -OutFile $archive -MaximumRedirection 10
+          Expand-Archive -LiteralPath $archive -DestinationPath $tools
+
+          $binary = Join-Path $tools "Godot_v$($env:GODOT_VERSION)-stable_win64_console.exe"
+          if (-not (Test-Path -LiteralPath $binary)) {
+            throw "Godot console executable is missing from the official archive: $binary"
+          }
+
+          $reported = (& $binary --headless --version | Out-String).Trim()
+          if ($LASTEXITCODE -ne 0 -or -not $reported.StartsWith("$($env:GODOT_VERSION).stable")) {
+            throw "Unexpected Godot version: $reported"
+          }
+          Write-Output "Using $reported"
+          "path=$binary" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Import project and run regression tests
+        shell: pwsh
+        env:
+          GODOT_BINARY: ${{ steps.godot.outputs.path }}
+        run: ./tests/run_checks.ps1 -GodotPath $env:GODOT_BINARY
+
+      - name: Upload Godot logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-test-logs
+          path: .godot/verify05_*.log
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7
