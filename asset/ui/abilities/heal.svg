@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <!-- Temporary 32 px HUD art: a healing draught and restrained emerald light. -->
+  <path fill="#23664b" d="M3 14h2v2H3zM4 13h1v4H4zM26 5h2v8h-2zM23 8h8v2h-8zM27 21h2v4h-2zM26 22h4v2h-4z"/>
+  <path fill="#69c987" d="M4 14h3v1H4zM27 6h1v7h-1zM24 9h7v1h-7zM27 22h2v2h-2z"/>
+  <path fill="#694b32" d="M12 2h9v3h-9zM11 5h11v3H11z"/>
+  <path fill="#c79b61" d="M13 3h7v2h-7zM12 5h9v2h-9z"/>
+  <path fill="#d6d9ca" d="M11 8h11v3h2v3h2v12h-2v3H9v-3H7V14h2v-3h2z"/>
+  <path fill="#626f6c" d="M12 9h9v3h2v3h2v10h-2v3H10v-3H8V15h2v-3h2z"/>
+  <path fill="#224b3b" d="M10 17h14v9h-2v1H11v-1h-2v-8h1z"/>
+  <path fill="#389461" d="M10 18h13v7h-2v1H12v-1h-2z"/>
+  <path fill="#64cb88" d="M12 18h9v2h-9zM11 20h2v5h-2zM18 22h4v2h-4z"/>
+  <path fill="#e2e8c7" d="M15 17h3v3h3v3h-3v3h-3v-3h-3v-3h3z"/>
+  <path fill="#f7f3cc" d="M16 18h1v3h3v1h-3v3h-1v-3h-3v-1h3z"/>
+  <path fill="#edf2db" d="M11 12h2v5h-2zM20 12h2v2h-2z"/>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <!-- Temporary 32 px HUD art: a sidestep and two fading echoes. -->
+  <path fill="#394147" d="M3 12h3v3H3zM5 16h3v7H5zM2 23h6v2H2zM8 9h3v3H8zM9 13h3v6H9zM7 20h4v2H7z"/>
+  <path fill="#5c6264" d="M6 11h3v3H6zM7 16h3v5H7zM5 22h5v2H5zM11 8h3v3h-3zM12 12h3v6h-3z"/>
+  <path fill="#c9a874" d="M17 4h5v2h2v4h-2v2h-5v-2h-2V6h2z"/>
+  <path fill="#f0c68a" d="M18 5h4v1h1v3h-1v2h-4V9h-2V6h2z"/>
+  <path fill="#443b35" d="M16 12h8v2h2v3h-2v2h-4v-2h-4v3h-3v-3h1v-3h2z"/>
+  <path fill="#bd985e" d="M17 13h6v2h2v2h-4v-2h-4v3h-3v-2h1v-2h2z"/>
+  <path fill="#e2bd7d" d="M19 13h4v1h2v2h-4v-2h-2z"/>
+  <path fill="#5b4934" d="M20 18h3v2h3v3h3v2h-6v-2h-4v-2h-4v3h-3v-3h4v-3z"/>
+  <path fill="#ba9660" d="M20 18h2v2h3v2h3v2h-4v-2h-5v-2h-3v2h-3v-1h4v-3z"/>
+  <path fill="#8d7858" d="M12 25h6v2h-6zM23 25h7v2h-7z"/>
+  <path fill="#d7b473" d="M14 25h4v1h-4zM25 25h5v1h-5z"/>
+</svg>

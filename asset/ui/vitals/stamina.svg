@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" shape-rendering="crispEdges">
+  <!-- Temporary HUD icon: green energy spiral, separate from dodge footwear. -->
+  <path fill="#534b35" d="M12 1h3v3h-2v2h2v2h2v3h2v4h-2v3h-3v2H6v-2H3v-3H1v-4h2V8h2V6h3V4h4z"/>
+  <path fill="#4b8c62" d="M12 2h2v3h-2v2h2v2h2v3h2v3h-2v2h-3v2H7v-2H4v-3H2v-3h2V8h2V6h3V4h3z"/>
+  <path fill="#79bd78" d="M12 2h1v4h-2v3h3v2h2v4h-2v2H8v-2H6v-3h2v2h2v1h3v-2h1v-2h-3V9H9V7h2V5h1z"/>
+  <path fill="#b0d99a" d="M12 3h1v3h-2v3h2v1h-3V7h1V5h1zM8 11h2v2H8z"/>
+  <path fill="#2b5d47" d="M4 11h2v4h2v2h4v1H7v-2H4zM14 12h2v3h-2z"/>
+</svg>

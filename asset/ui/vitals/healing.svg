@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <!-- Temporary quick-slot and inventory icon: a bandaged restoration draught. -->
+  <path fill="#2f463b" d="M26 5h2v3h-2zM25 6h4v1h-4zM28 21h2v3h-2zM27 22h4v1h-4z"/>
+  <path fill="#86ca8f" d="M27 5h1v4h-1zM25 7h5v1h-5zM28 21h1v4h-1zM26 23h5v1h-5z"/>
+  <path fill="#523c2d" d="M11 2h10v4H11zM10 6h12v3H10z"/>
+  <path fill="#bc9158" d="M12 3h8v2h-8zM11 6h10v2H11z"/>
+  <path fill="#3b4745" d="M11 9h11v3h2v3h2v11h-2v3H8v-3H6V15h2v-3h3z"/>
+  <path fill="#b9c6b6" d="M12 10h9v2h2v3h2v10h-2v3H9v-3H7V15h2v-3h3z"/>
+  <path fill="#396c50" d="M9 17h15v8h-2v2H10v-2H8v-7h1z"/>
+  <path fill="#5fba70" d="M10 18h13v6h-2v2H11v-2h-1z"/>
+  <path fill="#e2d9bf" d="M10 14h12v3h2v5h-2v3H10v-3H8v-5h2z"/>
+  <path fill="#f5e8ca" d="M10 16h12v2H9v-1h1zM10 19h2v4h-2z"/>
+  <path fill="#9d3033" d="M15 16h3v3h3v3h-3v3h-3v-3h-3v-3h3z"/>
+  <path fill="#dc5c54" d="M16 17h1v3h3v1h-3v3h-1v-3h-3v-1h3z"/>
+</svg>

@@ -1,0 +1,68 @@
+{
+  "iron_ingot": {
+    "name": "Выплавить железо",
+    "minutes": 20,
+    "inputs": {
+      "test_iron_ore": 2
+    },
+    "outputs": {
+      "test_iron_ingot": 1
+    },
+    "destination": "workshop"
+  },
+  "copper_ingot": {
+    "name": "Выплавить медь",
+    "minutes": 15,
+    "inputs": {
+      "test_copper_ore": 1
+    },
+    "outputs": {
+      "test_copper_ingot": 1
+    },
+    "destination": "workshop"
+  },
+  "iron_tool": {
+    "name": "Выковать инструмент",
+    "minutes": 30,
+    "inputs": {
+      "test_iron_ingot": 1
+    },
+    "outputs": {
+      "test_iron_tool": 1
+    },
+    "destination": "finished"
+  },
+  "copper_trinket": {
+    "name": "Изготовить украшение",
+    "minutes": 20,
+    "inputs": {
+      "test_copper_ingot": 1
+    },
+    "outputs": {
+      "test_copper_trinket": 1
+    },
+    "destination": "finished"
+  },
+  "test_sword": {
+    "name": "Выковать тестовый меч",
+    "minutes": 35,
+    "inputs": {
+      "test_iron_ingot": 1
+    },
+    "outputs": {
+      "test_sword": 1
+    },
+    "destination": "finished"
+  },
+  "test_armor": {
+    "minutes": 40,
+    "outputs": {
+      "test_armor": 1
+    },
+    "destination": "finished",
+    "inputs": {
+      "test_iron_ingot": 1
+    },
+    "name": "Тестовая броня"
+  }
+}

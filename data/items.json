@@ -1,0 +1,137 @@
+{
+	"test_iron_ore": {
+		"name": "Железная руда (тест)",
+		"description": "Материал для выплавки.",
+		"category": "ore",
+		"weight": 1.0,
+		"material": {
+			"iron": 1.0
+		}
+	},
+	"test_copper_ore": {
+		"name": "Медная руда (тест)",
+		"description": "Материал для выплавки.",
+		"category": "ore",
+		"weight": 1.0,
+		"material": {
+			"copper": 1.0
+		}
+	},
+	"test_iron_ingot": {
+		"name": "Железный слиток (тест)",
+		"description": "На слиток требуется две руды.",
+		"category": "material",
+		"weight": 2.0,
+		"material": {
+			"iron": 2.0
+		}
+	},
+	"test_copper_ingot": {
+		"name": "Медный слиток (тест)",
+		"description": "На слиток требуется одна руда.",
+		"category": "material",
+		"weight": 1.0,
+		"material": {
+			"copper": 1.0
+		}
+	},
+	"test_iron_tool": {
+		"name": "Железный инструмент (тест)",
+		"description": "Пробное изделие. Бонусы инструментов пока не реализованы.",
+		"category": "product",
+		"weight": 2.0,
+		"material": {
+			"iron": 2.0
+		}
+	},
+	"test_copper_trinket": {
+		"name": "Медное украшение (тест)",
+		"description": "Пробное изделие. Можно носить как аксессуар.",
+		"category": "product",
+		"weight": 1.0,
+		"material": {
+			"copper": 1.0
+		},
+		"slot": "accessory_1",
+		"modifiers": {
+			"max_stamina": 5.0
+		}
+	},
+	"test_sword": {
+		"name": "Тестовый меч",
+		"description": "Ближняя атака. Производится из железного слитка.",
+		"category": "equipment",
+		"slot": "main_hand",
+		"modifiers": {
+			"attack": 10.0
+		},
+		"material": {
+			"iron": 2.0
+		},
+		"weight": 2.0
+	},
+	"test_shield": {
+		"name": "Тестовый щит",
+		"description": "Усиливает защиту и блок. ПКМ — удерживать блок.",
+		"category": "equipment",
+		"slot": "off_hand",
+		"modifiers": {
+			"defense": 3.0,
+			"block_reduction": 0.25
+		},
+		"material": {
+			"iron": 1.0
+		},
+		"weight": 1.0
+	},
+	"test_heal": {
+		"name": "Лечебное средство (тест)",
+		"description": "Восстанавливает 40 HP, не выше максимума. Перерыв 3 секунды.",
+		"category": "consumable",
+		"heal": 40.0,
+		"material": {},
+		"weight": 0.1
+	},
+	"test_armor": {
+		"name": "Тестовая броня",
+		"description": "Простая защита тела. Изготавливается из железного слитка.",
+		"slot": "body",
+		"material": {
+			"iron": 2.0
+		},
+		"category": "equipment",
+		"modifiers": {
+			"move_speed": -10.0,
+			"defense": 5.0
+		},
+		"weight": 2.0
+	},
+	"test_adit_key": {
+		"name": "Ключ от решётки (тест)",
+		"category": "other",
+		"material": {},
+		"description": "Открывает решётку в тестовой штольне.",
+		"weight": 0.1
+	},
+	"test_adit_ring": {
+		"weight": 0.1,
+		"slot": "accessory_1",
+		"modifiers": {
+			"defense": 1.0,
+			"stamina_regen": 2.0
+		},
+		"name": "Кольцо передышки (тест)",
+		"description": "Редкая фиксированная находка: немного улучшает восстановление выносливости и защиту.",
+		"material": {
+			"copper": 1.0
+		},
+		"category": "equipment"
+	},
+	"test_food": {
+		"name": "Дорожная еда (тест)",
+		"category": "consumable",
+		"material": {},
+		"description": "Обычный припас. Обязательного голода нет; пищевые эффекты пока не назначены.",
+		"weight": 0.1
+	}
+}

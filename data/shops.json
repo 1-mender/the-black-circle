@@ -1,0 +1,18 @@
+{
+  "test_smith": {
+	"name": "Кузнец · тестовая торговля",
+	"buy_prices": {
+	  "test_iron_ore": 5,
+	  "test_copper_ore": 3
+	}
+  },
+  "test_merchant": {
+	"name": "Торговец · готовые изделия",
+	"sell_prices": {
+	  "test_iron_tool": 18,
+	  "test_copper_trinket": 8,
+	  "test_sword": 24,
+	  "test_armor": 22
+	}
+  }
+}

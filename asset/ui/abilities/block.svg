@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <!-- Temporary 32 px HUD art: shield receiving an impact. -->
+  <path fill="#7b4d2b" d="M4 5h2v3H4zM2 8h4v2H2zM4 12h3v2H4zM3 17h4v2H3zM5 21h3v2H5z"/>
+  <path fill="#e6a557" d="M3 7h5v2H3zM5 3h2v6H5zM2 14h6v2H2zM4 19h4v2H4zM6 23h3v2H6z"/>
+  <path fill="#fff0b1" d="M5 8h3v2H5zM3 15h5v1H3zM6 20h2v1H6z"/>
+  <path fill="#584630" d="M9 5h15v2h3v15h-2v4h-4v2h-9v-2H9v-4H7V7h2z"/>
+  <path fill="#bd9656" d="M10 5h13v2h3v14h-2v4h-4v2h-7v-2h-3v-4H8V7h2z"/>
+  <path fill="#d5b875" d="M11 6h12v2h2v12h-2v4h-4v2h-5v-2h-3v-4H9V8h2z"/>
+  <path fill="#2a3338" d="M12 9h10v2h2v9h-2v3h-4v2h-3v-2h-3v-3h-2v-9h2z"/>
+  <path fill="#647278" d="M13 10h8v2h2v7h-2v3h-3v2h-3v-2h-2v-3h-2v-7h2z"/>
+  <path fill="#9ca8a5" d="M13 11h7v1h-7zM12 12h2v7h-2zM14 20h2v2h-2z"/>
+  <path fill="#b89255" d="M16 13h3v2h2v4h-2v2h-3v-2h-2v-4h2z"/>
+  <path fill="#e2bd73" d="M16 14h2v1h2v3h-2v2h-2v-2h-1v-3h1z"/>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <!-- Temporary 32 px HUD art: a blade in motion, not an inventory weapon. -->
+  <path fill="#6d452d" d="M9 4h5v2H9zM6 6h3v2H6zM4 8h2v4H4zM3 12h2v8H3zM4 20h2v4H4zM6 24h3v2H6zM9 26h6v2H9z"/>
+  <path fill="#d49149" d="M10 4h5v1h-5zM7 6h3v1H7zM5 8h2v4H5zM4 12h1v8H4zM5 20h2v4H5zM7 24h3v2H7zM10 26h5v1h-5z"/>
+  <path fill="#f1bf72" d="M8 7h2v1H8zM6 10h1v4H6zM5 15h1v5H5zM7 22h2v2H7zM10 25h4v1h-4z"/>
+  <path fill="#323b40" d="M8 25h4v-3h3v-3h3v-3h3v-3h3v-3h3V5h-4v3h-3v3h-3v3h-3v3h-3v3H8z"/>
+  <path fill="#a6b0ab" d="M11 21h3v-3h3v-3h3v-3h3V9h3V5h2v5h-3v3h-3v3h-3v3h-3v3h-3v3h-2z"/>
+  <path fill="#e5e6d9" d="M13 20h2v-3h3v-3h3v-3h3V8h3V5h1v5h-3v3h-3v3h-3v3h-3v3h-3z"/>
+  <path fill="#b7a171" d="M8 20h2v2h2v2h2v2h2v2h-2v-2h-2v-2h-2v-2H8zM6 22h2v2H6zM14 18h2v2h-2z"/>
+  <path fill="#65432f" d="M8 26h3v2H8zM7 28h3v2H7z"/>
+  <path fill="#d49a58" d="M8 27h2v1H8z"/>
+</svg>
