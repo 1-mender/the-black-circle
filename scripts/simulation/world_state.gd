@@ -42,6 +42,7 @@ var life := ResidentSimulation.new()
 const Social = preload("res://scripts/simulation/social_simulation.gd")
 const ResidentFactory = preload("res://scripts/data/resident_factory.gd")
 const ConversationLanguage = preload("res://scripts/data/conversation_language.gd")
+const Crowd = preload("res://scripts/navigation/crowd_navigation.gd")
 var social := Social.new()
 var next_resident_id := 1
 var resident_seed := 7307
@@ -68,29 +69,47 @@ func _production_tick() -> void:
 func spawn_resident(position: Vector2, profession: String = "metalworker", assignment: Dictionary = {}) -> String:
 	if life.clock.paused or location_id != "town" or not life.navigation.walkable(position):
 		return ""
+	var spawn_point := _vacant_resident_point(position)
+	if not spawn_point.is_finite():
+		return ""
 	var id := "resident_%06d" % next_resident_id
-	var generated: Dictionary = ResidentFactory.make(next_resident_id, resident_seed, position, profession, assignment)
+	var generated: Dictionary = ResidentFactory.make(next_resident_id, resident_seed, spawn_point, profession, assignment)
 	var definition: Dictionary = generated.definition
 	for key in ["home", "rest", "food", "errand"]:
 		if not definition[key] is Vector2 or not life.navigation.walkable(definition[key]):
 			if assignment.has(key):
 				return ""
-			definition[key] = position
+			definition[key] = spawn_point
 	definition["profile"] = generated.profile
 	if not life.register(id, definition):
 		return ""
 	var profile: Dictionary = generated.profile.duplicate(true)
 	profile["display_name"] = definition.name
-	if not social.add_character(id, profile) or not economy.ledger.add_resident(id):
+	if not social.add_character(id, profile) or not economy.ledger.add_resident(id, profession) or not economy.register_worker(id, profession):
 		life.people.erase(id)
 		life.definitions.erase(id)
 		social.characters.erase(id)
 		social.relations.erase(id)
+		for owner in ["npc:" + id, "process:social:" + id, "process:worker:" + id, "shop:" + id]:
+			economy.ledger.owners.erase(owner)
+			economy.ledger.wallets.erase(owner)
 		return ""
+	catalog.add_resident_shop(id, profession, definition.name)
 	npc_records[id] = {"display_name": definition.name, "conversations": 0}
 	ConversationLanguage.extra_names[id] = {"name": definition.name}
 	next_resident_id += 1
 	return id
+
+func _vacant_resident_point(requested: Vector2) -> Vector2:
+	for ring in range(21):
+		for y in range(-ring, ring + 1):
+			for x in range(-ring, ring + 1):
+				if ring > 0 and maxi(absi(x), absi(y)) != ring:
+					continue
+				var candidate := requested + Vector2(x * 48, y * 48)
+				if life.navigation.walkable(candidate) and not Crowd.occupied(candidate, "", life.people, "town") and candidate.distance_to(player_position) >= Crowd.SPACING:
+					return candidate
+	return Vector2.INF
 
 func mine(deposit_id: String) -> int:
 	if not MineData.DEPOSITS.has(deposit_id) or int(resources.get(deposit_id, 0)) <= 0:
@@ -211,10 +230,15 @@ func apply_save(data: Dictionary) -> bool:
 	var restored_sources: Dictionary = {}
 	for id in saved_resources:
 		restored_sources[id] = int(saved_resources[id])
-	var restored_economy := ProductionSimulation.new(restored_sources, restored_inventory, catalog)
+	var restored_catalog := Catalog.new()
 	for id in restored_life.people:
-		if not life.Definitions.PEOPLE.has(id) and not restored_economy.ledger.add_resident(id):
-			return false
+		if not life.Definitions.PEOPLE.has(id):
+			restored_catalog.add_resident_shop(id, restored_life.definitions[id].profession, restored_life.definitions[id].name)
+	var restored_economy := ProductionSimulation.new(restored_sources, restored_inventory, restored_catalog)
+	for id in restored_life.people:
+		if not life.Definitions.PEOPLE.has(id):
+			if not restored_economy.ledger.add_resident(id, restored_life.definitions[id].profession) or not restored_economy.register_worker(id, restored_life.definitions[id].profession):
+				return false
 	if int(data["version"]) >= 3:
 		if not restored_economy.load_data(data.get("economy"), int(data["version"]) <= 5):
 			return false
@@ -270,6 +294,7 @@ func apply_save(data: Dictionary) -> bool:
 		location_name = Adit.NAMES[location_id]
 	player_position = position
 	inventory = restored_inventory
+	catalog = restored_catalog
 	resources = restored_sources
 	economy = restored_economy
 	for id in npc_records.keys():

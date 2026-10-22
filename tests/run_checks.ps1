@@ -34,7 +34,14 @@ $checks = @(
     @{Name='speech'; Args=@('--script','res://tests/speech_test.gd')},
     @{Name='dark_map'; Args=@('--script','res://tests/dark_map_test.gd')},
     @{Name='minimal_menu'; Args=@('--script','res://tests/minimal_menu_test.gd')}
-    @{Name='dynamic_residents'; Args=@('--script','res://tests/dynamic_resident_test.gd')}
+    @{Name='dynamic_residents'; Args=@('--script','res://tests/dynamic_resident_test.gd')},
+    @{Name='p1_professions'; Args=@('--script','res://tests/p1_profession_test.gd')},
+    @{Name='p1_professions_fresh'; Args=@('--script','res://tests/p1_profession_test.gd','--','--verify-save')},
+    @{Name='p1_measure'; Args=@('--script','res://tests/p1_measure.gd')},
+    @{Name='p1_measure_11_fresh'; Args=@('--script','res://tests/p1_measure.gd','--','verify','0')},
+    @{Name='p1_measure_30_fresh'; Args=@('--script','res://tests/p1_measure.gd','--','verify','19')},
+    @{Name='p1_measure_50_fresh'; Args=@('--script','res://tests/p1_measure.gd','--','verify','39')},
+    @{Name='p1_measure_100_fresh'; Args=@('--script','res://tests/p1_measure.gd','--','verify','89')}
 )
 $testUiPrefsPrevious = $env:ZLATOGORYE_UI_PREFS
 $env:ZLATOGORYE_UI_PREFS = 'res://.godot/interface_defaults_for_tests.cfg'

@@ -76,7 +76,8 @@ func menu() -> void:
 	if topic in ["greeting","topics"]:
 		choices.append({"id":"self","text":"Напомните, чем вы занимаетесь." if _already("self") else "Расскажите немного о себе."})
 		choices.append({"id":"conflict","text":"Хочу услышать вашу версию того спора."} if not _known_conflict().is_empty() else {"id":"news","text":"Что происходит в районе?"})
-		choices.append({"id":"trade","text":"Покажите ваши товары." if npc_id=="test_merchant" else "Хочу продать руду."} if npc_id in ["test_smith","test_merchant"] else {"id":"work","text":"Как работа? Нужна помощь?"})
+		var profession: String = str(state.life.definitions[npc_id].get("profession", ""))
+		choices.append({"id":"trade","text":"Покажите ваши товары." if profession=="merchant" else "Хочу продать руду."} if profession in ["smith","merchant"] else {"id":"work","text":"Как работа? Нужна помощь?"})
 	elif topic in ["news","conflict","detail","source","participant"] and not current_event.is_empty():
 		if not asked.has("detail_"+str(current_event.id)):
 			choices.append({"id":"detail","text":"С чего началось ваше разногласие?" if current_event.kind in ["argue","discontent"] and npc_id in [current_event.actor,current_event.target] else "А что было перед этим?"})

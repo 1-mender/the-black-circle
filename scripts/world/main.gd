@@ -191,9 +191,9 @@ func _physics_process(delta: float) -> void:
 	if ui.dialogue.visible and not talking_npc_id.is_empty():
 		held.append(talking_npc_id)
 	if economy.mode == "trade":
-		held.append("test_smith")
+		held.append(economy.shop_id)
 	elif economy.mode == "market":
-		held.append("test_merchant")
+		held.append(economy.shop_id)
 	world_state.player_position = player.position
 	# The same accepted interval reaches residents, production and social decisions.
 	world_state.life.advance(accepted_seconds / clock.speed, held, player.position, world_state.location_id)
@@ -629,7 +629,7 @@ func _workshop_transfer(item_id: String, to_workshop: bool) -> void:
 	workshop.refresh(world_state)
 
 func _buy(item_id: String, amount: int) -> void:
-	if world_state.life.clock.paused or economy.mode != "market" or world_state.location_id != "town" or not _reachable(resident_views["test_merchant"].position):
+	if world_state.life.clock.paused or economy.mode != "market" or world_state.location_id != "town" or not resident_views.has(economy.shop_id) or not _reachable(resident_views[economy.shop_id].position):
 		return
 	var paid: int = world_state.buy(economy.shop_id, item_id, amount)
 	economy.show_notice("Покупка: −%d монет" % paid if paid > 0 else "Недостаточно денег, товара или места")
@@ -638,7 +638,7 @@ func _buy(item_id: String, amount: int) -> void:
 func _sell(item_id: String, amount: int) -> void:
 	if world_state.life.clock.paused:
 		return
-	if economy.mode != "trade" or world_state.location_id != "town" or not _reachable(smith.position):
+	if economy.mode != "trade" or world_state.location_id != "town" or not resident_views.has(economy.shop_id) or not _reachable(resident_views[economy.shop_id].position):
 		return
 	var earned: int = world_state.sell(economy.shop_id, item_id, amount)
 	economy.show_notice("Продано: +%d монет" % earned if earned > 0 else "Продажа недоступна. Проверьте количество предметов и баланс.")
@@ -879,10 +879,11 @@ func _social_trade(target: String) -> void:
 		return
 	close_windows()
 	_hold_resident(target)
-	if target=="test_smith":
+	var profession: String = str(world_state.life.definitions[target].get("profession", ""))
+	if profession == "smith":
 		economy.open_trade(world_state,target)
-	elif target=="test_merchant":
-		economy.open_market(world_state)
+	elif profession == "merchant":
+		economy.open_market(world_state,target)
 	player.input_enabled=false
 
 func _conversation_hud() -> void:

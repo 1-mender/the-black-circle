@@ -162,9 +162,9 @@ func open_trade(state: RefCounted, merchant_id: String) -> void:
 	trade_window.show()
 	refresh(state)
 
-func open_market(state: RefCounted) -> void:
+func open_market(state: RefCounted, merchant_id: String = "test_merchant") -> void:
 	mode = "market"
-	shop_id = "test_merchant"
+	shop_id = merchant_id
 	inventory_view.hide()
 	trade_window.show()
 	refresh(state)
@@ -191,7 +191,7 @@ func refresh(state: RefCounted) -> void:
 		_refresh_market(state)
 		return
 	title.text = state.catalog.shops[shop_id]["name"]
-	summary.text = "Баланс: %d монет. Кузнец покупает руду. Касса: %d монет." % [state.money, state.economy.ledger.wallets["shop:test_smith"]]
+	summary.text = "Баланс: %d монет. Кузнец покупает руду. Касса: %d монет." % [state.money, state.economy.ledger.wallets["shop:" + shop_id]]
 	var ids: Array = state.catalog.shops[shop_id]["buy_prices"].keys()
 	ids.sort()
 	for item_id in ids:

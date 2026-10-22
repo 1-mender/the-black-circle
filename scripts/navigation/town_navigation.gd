@@ -94,7 +94,9 @@ func around_people(from: Vector2, to: Vector2, id: String, people: Dictionary, l
 	var points: Array[Vector2]=[]
 	for other in people:
 		if other!=id and people[other].location==location:
-			points.append(people[other].position)
+			var occupied_point: Vector2 = people[other].position
+			if Geometry2D.get_closest_point_to_segment(occupied_point, from, to).distance_to(occupied_point) < 72:
+				points.append(occupied_point)
 	if blocker.is_finite():
 		points.append(blocker)
 	var changed: Array[Vector2i]=[]

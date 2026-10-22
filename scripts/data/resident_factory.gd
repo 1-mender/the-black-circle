@@ -2,6 +2,7 @@ extends RefCounted
 ## Deterministic initial profiles. Names are labels, never random seeds.
 
 const GOALS := ["craft", "recognition", "help", "peace", "security", "companionship"]
+const Mine = preload("res://scripts/data/mine_location.gd")
 
 static func make(serial: int, world_seed: int, position: Vector2, profession: String = "metalworker", assignment: Dictionary = {}) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
@@ -19,7 +20,7 @@ static func make(serial: int, world_seed: int, position: Vector2, profession: St
 	var fears: Array = ["ссоры" if caution >= 60 else "неудача"]
 	return {
 		"definition": {"name": "Житель %d (тест)" % serial, "sprite": rng.randi_range(0, 7),
-			"spawn": position, "work": assignment.get("work", position), "home": assignment.get("home", position + Vector2(48, 0)),
+			"spawn": position, "work": assignment.get("work", Mine.TOWN_RETURN if profession == "miner" else position), "home": assignment.get("home", position + Vector2(48, 0)),
 			"rest": assignment.get("rest", position + Vector2(0, 48)), "food": assignment.get("food", position + Vector2(0, 48)),
 			"errand": assignment.get("errand", position + Vector2(-48, 0)), "profession": profession},
 		"profile": {"caution": caution, "sociability": sociability, "ambition": ambition,

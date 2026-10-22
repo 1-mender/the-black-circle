@@ -5,7 +5,9 @@ const DEFAULT_PATH := "user://savegame.json"
 const MAX_BYTES := 16777216
 
 static func save_game(state: RefCounted, path: String = DEFAULT_PATH) -> String:
-	var text := JSON.stringify(state.to_save(), "\t", true, true)
+	# Whitespace is a large share of social histories. Compact JSON keeps the
+	# existing schema, migration and corruption checks while reducing disk use.
+	var text := JSON.stringify(state.to_save(), "", true, true)
 	if text.to_utf8_buffer().size()>MAX_BYTES:
 		return "Сохранение превышает допустимый размер. Предыдущий слот сохранён."
 	var temporary := path + ".tmp"

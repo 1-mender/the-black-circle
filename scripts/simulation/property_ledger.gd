@@ -97,6 +97,13 @@ func trade(seller: String, buyer: String, item_id: String, amount: int, price: i
 	wallets[seller] += cost
 	return cost
 
+func transfer_money(from: String, to: String, amount: int) -> bool:
+	if from == to or not wallets.has(from) or not wallets.has(to) or amount <= 0 or int(wallets[from]) < amount or int(wallets[to]) > MAX_MONEY - amount:
+		return false
+	wallets[from] -= amount
+	wallets[to] += amount
+	return true
+
 func to_save() -> Dictionary:
 	var saved: Dictionary = {}
 	for id in owners:
@@ -142,10 +149,15 @@ func add_drop_owner(id: String) -> bool:
 	wallets[id] = 0
 	return true
 
-func add_resident(id: String) -> bool:
+func add_resident(id: String, profession: String = "") -> bool:
 	if not id.begins_with("resident_") or owners.has("npc:" + id):
 		return false
-	for prefix in ["npc:", "process:social:"]:
+	var prefixes := ["npc:", "process:social:"]
+	if profession == "smith":
+		prefixes.append("process:worker:")
+	if profession in ["smith", "merchant"]:
+		prefixes.append("shop:")
+	for prefix in prefixes:
 		var owner_id: String = prefix + id
 		owners[owner_id] = Inventory.new()
 		wallets[owner_id] = 0

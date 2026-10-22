@@ -10,6 +10,7 @@ const Navigation = preload("res://scripts/navigation/town_navigation.gd")
 const Mine = preload("res://scripts/data/mine_location.gd")
 const Production = preload("res://scripts/data/production_definitions.gd")
 const Crowd = preload("res://scripts/navigation/crowd_navigation.gd")
+const Occupations = preload("res://scripts/data/occupation_definitions.gd")
 const WALK_PER_MINUTE := 12.0
 
 var clock := Clock.new()
@@ -17,6 +18,8 @@ var navigation := Navigation.new()
 var mine_navigation := Navigation.new(Mine.solid_rects(), Mine.MAP_SIZE)
 var people: Dictionary = {}
 var definitions: Dictionary = Definitions.PEOPLE.duplicate(true)
+var profile_enabled := false
+var profile_usec: Dictionary = {"decisions": 0, "navigation": 0}
 
 func _init() -> void:
 	for id in definitions:
@@ -28,11 +31,13 @@ func _init() -> void:
 			"next_decision": 480, "path": [], "work_minutes": 0, "sleep_minutes": 0, "meal_minutes": 0}
 		if definition["spawn"] != definition["work"]:
 			people[id]["activity"] = "walk"
-	people["test_miner"]["work_mode"] = "mine"
-	people["test_miner"]["work_site"] = "iron_01"
+	for id in definitions:
+		if definitions[id].get("profession", "") == "miner":
+			people[id]["work_mode"] = "mine"
+			people[id]["work_site"] = "iron_01"
 
 func register(id: String, definition: Dictionary) -> bool:
-	if people.has(id) or not id.begins_with("resident_") or definition.get("profession", "") not in ["metalworker", "carrier", "mason", "guard", "scribe", "artisan"]:
+	if people.has(id) or not id.begins_with("resident_") or not Occupations.ROLES.has(definition.get("profession", "")):
 		return false
 	for key in ["spawn", "work", "home", "rest", "food", "errand"]:
 		if not definition.get(key) is Vector2 or not navigation.walkable(definition[key]):
@@ -42,6 +47,9 @@ func register(id: String, definition: Dictionary) -> bool:
 		"location": "town", "hunger": 0.0, "fatigue": 15.0, "rest_need": 0.0,
 		"task": "work", "activity": "work", "goal": definition.work, "reason": "schedule",
 		"next_decision": clock.minute + 5, "path": [], "work_minutes": 0, "sleep_minutes": 0, "meal_minutes": 0}
+	if definition.profession == "miner":
+		people[id]["work_mode"] = "mine"
+		people[id]["work_site"] = "iron_01"
 	return true
 
 func advance(real_seconds: float, held: Array[String] = [], blocker := Vector2.INF, blocker_location: String = "town") -> void:
@@ -67,6 +75,7 @@ func step(held: Array[String] = [], blocker := Vector2.INF, blocker_location: St
 			resident["next_decision"] = clock.minute + 1
 			continue
 		if clock.minute >= resident["next_decision"]:
+			var decision_start := Time.get_ticks_usec() if profile_enabled else 0
 			var decision := Decisions.choose(resident, clock.minute)
 			var goal := goal_for(id, decision["task"], resident)
 			var changed: bool = decision["task"] != resident["task"] or goal != resident["goal"]
@@ -74,11 +83,19 @@ func step(held: Array[String] = [], blocker := Vector2.INF, blocker_location: St
 			resident["reason"] = decision["reason"]
 			resident["goal"] = goal
 			resident["next_decision"] = clock.minute + 5
+			if profile_enabled:
+				profile_usec.decisions += Time.get_ticks_usec() - decision_start
 			if changed or resident["path"].is_empty() or resident["activity"] == "wait":
+				var path_start := Time.get_ticks_usec() if profile_enabled else 0
 				resident["path"] = navigation_for(resident["location"]).path(resident["position"], goal, blocker if resident["location"] == blocker_location else Vector2.INF)
+				if profile_enabled:
+					profile_usec.navigation += Time.get_ticks_usec() - path_start
+		var move_start := Time.get_ticks_usec() if profile_enabled else 0
 		_move(resident, blocker if resident["location"] == blocker_location else Vector2.INF)
-		if id == "test_miner":
-			_transition_miner(resident)
+		if definitions[id].get("profession", "") == "miner":
+			_transition_miner(id, resident)
+		if profile_enabled:
+			profile_usec.navigation += Time.get_ticks_usec() - move_start
 	minute_advanced.emit()
 
 func navigation_for(location: String) -> RefCounted:
@@ -94,7 +111,7 @@ func refresh_assignment(id: String) -> void:
 func goal_for(id: String, task: String, resident: Dictionary) -> Vector2:
 	if task == "errand" and resident.get("social_goal") is Array:
 		return Vector2(resident.social_goal[0],resident.social_goal[1])
-	if id == "test_miner":
+	if definitions[id].get("profession", "") == "miner":
 		if resident["location"] == "mine":
 			if task == "work" and resident["work_mode"] == "mine":
 				return Mine.DEPOSITS[resident["work_site"]]["position"] + Vector2(0, 64)
@@ -103,7 +120,7 @@ func goal_for(id: String, task: String, resident: Dictionary) -> Vector2:
 			return Production.WORKBENCH
 	return definitions[id][Definitions.TASK_POINT[task]]
 
-func _transition_miner(resident: Dictionary) -> void:
+func _transition_miner(id: String, resident: Dictionary) -> void:
 	if resident["position"].distance_to(resident["goal"]) > 0.1:
 		return
 	var location: String = resident["location"]
@@ -117,7 +134,7 @@ func _transition_miner(resident: Dictionary) -> void:
 		return
 	resident["previous"] = resident["position"]
 	resident["path"].clear()
-	resident["goal"] = goal_for("test_miner", resident["task"], resident)
+	resident["goal"] = goal_for(id, resident["task"], resident)
 	resident["activity"] = "walk"
 	resident["next_decision"] = clock.minute
 
@@ -272,9 +289,9 @@ func load_data(data: Variant, legacy: bool = false) -> bool:
 				return false
 		if resident.get("location") not in ["town", "mine"] or resident.get("task") not in Definitions.TASK_POINT:
 			return false
-		if id != "test_miner" and resident["location"] != "town":
+		if definitions[id].get("profession", "") != "miner" and resident["location"] != "town":
 			return false
-		if id == "test_miner":
+		if definitions[id].get("profession", "") == "miner":
 			resident["work_mode"] = resident.get("work_mode", "mine")
 			resident["work_site"] = resident.get("work_site", "iron_01")
 			if resident["work_mode"] not in ["mine", "deliver", "idle"] or not Mine.DEPOSITS.has(resident["work_site"]):

@@ -19,6 +19,8 @@ var last_minute := -1
 var seed := 7307
 var receipts: Array = []
 var revision := 0
+var profile_enabled := false
+var profile_usec: Dictionary = {"encounters": 0, "actions": 0, "projects": 0}
 
 func _init() -> void:
 	for id in ["player"] + Definitions.PEOPLE.keys():
@@ -92,7 +94,8 @@ func check_action(state: RefCounted, actor: String, target: String, action: Stri
 		return "Недостаточно выносливости для помощи"
 	if action in ["accept","refuse"] and (characters[actor].pending.is_empty() or characters[actor].pending.from!=target):
 		return "Нет просьбы от этого персонажа"
-	if action=="help" and target!="player" and state.life.people[target].fatigue<8 and state.economy.jobs.smith.is_empty() and not projects.has(target):
+	var job_key: String = str(state.economy.workers.get(target, {}).get("actor_key", ""))
+	if action=="help" and target!="player" and state.life.people[target].fatigue<8 and (not state.economy.jobs.has(job_key) or state.economy.jobs[job_key].is_empty()) and not projects.has(target):
 		return "Сейчас помощь трудом не требуется"
 	if action in ["support","oppose"] and _conflict_known(actor,target,payload).is_empty():
 		return "Вам неизвестен конфликт с этим участником"
@@ -456,11 +459,15 @@ func tick(state: RefCounted) -> void:
 				person.grievances.erase(other)
 		if id!="player":
 			var resident: Dictionary = state.life.people[id]
-			person.work_available=projects.has(id) or id=="test_smith" and not state.economy.jobs.smith.is_empty()
+			var worker_key: String = str(state.economy.workers.get(id, {}).get("actor_key", ""))
+			person.work_available=projects.has(id) or not worker_key.is_empty() and state.economy.jobs.has(worker_key) and not state.economy.jobs[worker_key].is_empty()
 			if resident.has("social_goal") and minute>=int(resident.get("social_goal_until",0)):
 				resident.erase("social_goal")
 				state.life.refresh_assignment(id)
+	var project_start := Time.get_ticks_usec() if profile_enabled else 0
 	_projects(state)
+	if profile_enabled:
+		profile_usec.projects += Time.get_ticks_usec() - project_start
 	if minute%15!=0:
 		return
 	var ids: Array = state.life.people.keys()
@@ -483,6 +490,7 @@ func tick(state: RefCounted) -> void:
 				resident.social_goal_until=minute+45
 				state.life.refresh_assignment(actor)
 			continue
+		var encounter_start := Time.get_ticks_usec() if profile_enabled else 0
 		var candidates: Array = []
 		for target in ids+["player"]:
 			if target==actor:
@@ -492,6 +500,8 @@ func tick(state: RefCounted) -> void:
 			var other := spatial(state,target)
 			if other.location==resident.location and other.awake and other.position.distance_to(resident.position)<140 and state.adventure.clear_line(resident.location,resident.position,other.position):
 				candidates.append(target)
+		if profile_enabled:
+			profile_usec.encounters += Time.get_ticks_usec() - encounter_start
 		if candidates.is_empty():
 			continue
 		var target: String = str(candidates[0])
@@ -510,7 +520,10 @@ func tick(state: RefCounted) -> void:
 		var decision := choose(actor,target,resident.fatigue)
 		person.plan=LABELS[decision.action]+": "+name_of(target)
 		person.reason=decision.reason
+		var action_start := Time.get_ticks_usec() if profile_enabled else 0
 		var response := execute(state,actor,target,decision.action,{"distort":bool(decision.get("distort",false))})
+		if profile_enabled:
+			profile_usec.actions += Time.get_ticks_usec() - action_start
 		person.reason=decision.reason+" · "+str(response.reason)
 		# Habits yield to a chosen relationship during free time, not teleportation.
 		if resident.task=="errand" and resident.location=="town":

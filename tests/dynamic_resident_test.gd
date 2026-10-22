@@ -53,6 +53,9 @@ func run() -> void:
 	old_slot.erase("next_resident_id")
 	old_slot.life.erase("definitions")
 	check(loaded.apply_save(old_slot) and loaded.life.people.size() == 11 and loaded.next_resident_id == 1, "Loading an older slot removes transient residents and resets the runtime ID sequence")
+	var previous_p1: Dictionary = state.to_save()
+	previous_p1.economy.erase("workers")
+	check(State.new().apply_save(previous_p1), "Earlier P1 slots without production workers remain loadable")
 	for amount in [30, 100]:
 		var memory_before := Performance.get_monitor(Performance.MEMORY_STATIC)
 		var bench := State.new()
