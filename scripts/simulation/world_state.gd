@@ -253,6 +253,9 @@ func apply_save(data: Dictionary) -> bool:
 				return false
 		resident_seed = int(data.resident_seed)
 		next_resident_id = int(data.next_resident_id)
+	else:
+		resident_seed = 7307
+		next_resident_id = 1
 	social=restored_social
 	rpg = restored_rpg
 	arena_combat = restored_combat

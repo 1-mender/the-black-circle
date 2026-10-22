@@ -34,6 +34,7 @@ $checks = @(
     @{Name='speech'; Args=@('--script','res://tests/speech_test.gd')},
     @{Name='dark_map'; Args=@('--script','res://tests/dark_map_test.gd')},
     @{Name='minimal_menu'; Args=@('--script','res://tests/minimal_menu_test.gd')}
+    @{Name='dynamic_residents'; Args=@('--script','res://tests/dynamic_resident_test.gd')}
 )
 $testUiPrefsPrevious = $env:ZLATOGORYE_UI_PREFS
 $env:ZLATOGORYE_UI_PREFS = 'res://.godot/interface_defaults_for_tests.cfg'
