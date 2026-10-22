@@ -40,6 +40,8 @@ func add_character(id: String, profile: Dictionary) -> bool:
 		"memory":[],"summaries":[],"knowledge":{},"pending":{},"cooldown":0,"plan":"Привычный распорядок","reason":"Нет незавершённой просьбы",
 		"blocked_until":0,"completed":0,"last_partner":"","last_action":"","last_topic":0,"grievances":{},"contacts":{},"requested_until":0,"work_available":false}
 	characters[id]["shared"]={}
+	if profile.has("display_name"):
+		characters[id]["display_name"] = str(profile.display_name)
 	relations[id] = {}
 	return true
 
@@ -53,7 +55,7 @@ func relation_view(actor: String, target: String) -> Dictionary:
 	return relations.get(actor,{}).get(target,{"attachment":0.0,"trust":10.0,"respect":10.0,"dislike":0.0,"history":[],"last_summary":""})
 
 func name_of(id: String) -> String:
-	return "Авантюрист" if id == "player" else str(Definitions.PEOPLE.get(id,{}).get("name",id))
+	return "Авантюрист" if id == "player" else str(characters.get(id,{}).get("display_name",Definitions.PEOPLE.get(id,{}).get("name",id)))
 
 func spatial(state: RefCounted, id: String) -> Dictionary:
 	if id == "player":
@@ -476,7 +478,7 @@ func tick(state: RefCounted) -> void:
 			person.plan="Избегать ссор и побыть в покое"
 			person.reason="Страх после наблюдаемого конфликта"
 			if resident.task=="errand":
-				var refuge: Vector2=Definitions.PEOPLE[actor].rest
+				var refuge: Vector2=state.life.definitions[actor].rest
 				resident.social_goal=[refuge.x,refuge.y]
 				resident.social_goal_until=minute+45
 				state.life.refresh_assignment(actor)
@@ -520,7 +522,7 @@ func tick(state: RefCounted) -> void:
 				point+=offset
 			var relation := relationship(actor,target)
 			if float(relation.dislike)>50:
-				point=Definitions.PEOPLE[actor].rest
+				point=state.life.definitions[actor].rest
 			resident.social_goal=[point.x,point.y]
 			resident.social_goal_until=minute+30
 			state.life.refresh_assignment(actor)
@@ -529,7 +531,7 @@ func _projects(state: RefCounted) -> void:
 	var minute: int = state.life.clock.minute
 	var ledger = state.economy.ledger
 	for id in state.life.people:
-		var definition: Dictionary = Definitions.PEOPLE[id]
+		var definition: Dictionary = state.life.definitions[id]
 		if definition.get("profession","")!="metalworker":
 			continue
 		var resident: Dictionary = state.life.people[id]
@@ -586,6 +588,16 @@ static func _canonical(value: Variant) -> Variant:
 func load_data(data: Variant, state_life: RefCounted, ledger: RefCounted) -> bool:
 	if not data is Dictionary or not data.get("characters") is Dictionary or not data.get("relations") is Dictionary or not data.get("history") is Array or not data.get("projects") is Dictionary or not data.get("receipts") is Array:
 		return false
+	for id in state_life.people:
+		if not characters.has(id):
+			var definition: Dictionary = state_life.definitions[id]
+			var profile: Dictionary = definition.get("profile", {})
+			if not profile.has("goal"):
+				return false
+			profile = profile.duplicate(true)
+			profile["display_name"] = definition.name
+			if not add_character(id, profile):
+				return false
 	if data.characters.size()!=characters.size() or data.relations.size()!=characters.size() or data.history.size()>MAX_HISTORY or data.receipts.size()>64:
 		return false
 	for key in ["next_event","seed"]:
@@ -632,6 +644,8 @@ func load_data(data: Variant, state_life: RefCounted, ledger: RefCounted) -> boo
 		for key in ["long_goal","plan","reason","last_partner","last_action","biography"]:
 			if not person.get(key) is String or person[key].length()>512:
 				return false
+		if person.has("display_name") and (not person.display_name is String or person.display_name.length()>64):
+			return false
 		for key in ["beliefs","wishes","fears"]:
 			if not person.get(key) is Array or person[key].size()>8:
 				return false

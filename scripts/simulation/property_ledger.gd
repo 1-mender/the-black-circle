@@ -142,6 +142,15 @@ func add_drop_owner(id: String) -> bool:
 	wallets[id] = 0
 	return true
 
+func add_resident(id: String) -> bool:
+	if not id.begins_with("resident_") or owners.has("npc:" + id):
+		return false
+	for prefix in ["npc:", "process:social:"]:
+		var owner_id: String = prefix + id
+		owners[owner_id] = Inventory.new()
+		wallets[owner_id] = 0
+	return true
+
 func material_totals() -> Dictionary:
 	var totals := {"iron": 0, "copper": 0}
 	for owner in owners:

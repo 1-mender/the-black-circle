@@ -2,7 +2,7 @@ extends RefCounted
 ## Один локальный слот. Запись во временный файл, предыдущая версия в .bak.
 
 const DEFAULT_PATH := "user://savegame.json"
-const MAX_BYTES := 1048576
+const MAX_BYTES := 16777216
 
 static func save_game(state: RefCounted, path: String = DEFAULT_PATH) -> String:
 	var text := JSON.stringify(state.to_save(), "\t", true, true)

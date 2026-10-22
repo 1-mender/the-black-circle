@@ -1,6 +1,7 @@
 extends RefCounted
 ## Presentation only: supported Russian name forms, never save IDs or biographies.
 const Definitions=preload("res://scripts/data/resident_definitions.gd")
+static var extra_names: Dictionary = {}
 const FORMS={
 	"test_npc":["горожанин","горожанину","горожанином","горожанина"],
 	"test_smith":["кузнец","кузнецу","кузнецом","кузнеца"],
@@ -16,7 +17,7 @@ const FORMS={
 static func name_form(id: String, form: int=0) -> String:
 	if id=="player":
 		return ["вы","вам","вами","вас"][form]
-	var definition: Dictionary=Definitions.PEOPLE.get(id,{})
+	var definition: Dictionary=Definitions.PEOPLE.get(id,extra_names.get(id,{}))
 	var forms: Array=definition.get("speech_names",FORMS.get(id,[]))
 	if forms.size()==4:
 		return str(forms[form])

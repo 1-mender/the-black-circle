@@ -145,7 +145,7 @@ func _ready() -> void:
 	for actor in $Actors.get_children():
 		if actor!=player:
 			represented[actor.npc_id]=true
-	for id in Residents.PEOPLE:
+	for id in world_state.life.people:
 		if not represented.has(id):
 			var actor=resident_scene.instantiate()
 			actor.npc_id=id
@@ -154,7 +154,7 @@ func _ready() -> void:
 		if actor == player:
 			continue
 		resident_views[actor.npc_id] = actor
-		var definition: Dictionary = Residents.PEOPLE[actor.npc_id]
+		var definition: Dictionary = world_state.life.definitions[actor.npc_id]
 		actor.setup_resident(definition["name"], definition["sprite"])
 	_sync_residents(0.0, true)
 	economy.refresh(world_state)
@@ -207,6 +207,18 @@ func _physics_process(delta: float) -> void:
 		ui.defeat_panel.hide()
 
 func _sync_residents(delta: float, snap: bool = false) -> void:
+	for id in resident_views.keys():
+		if not world_state.life.people.has(id):
+			resident_views[id].queue_free()
+			resident_views.erase(id)
+	for id in world_state.life.people:
+		if not resident_views.has(id):
+			var actor=preload("res://scenes/actors/npc.tscn").instantiate()
+			actor.npc_id=id
+			$Actors.add_child(actor)
+			var definition: Dictionary=world_state.life.definitions[id]
+			actor.setup_resident(definition.name,definition.sprite)
+			resident_views[id]=actor
 	for id in resident_views:
 		var actor = resident_views[id]
 		var record: Dictionary = world_state.life.people[id]
@@ -321,7 +333,7 @@ func interaction_target() -> Dictionary:
 			continue
 		var actor = resident_views[id]
 		var kind := "dialogue"
-		targets.append({"kind": kind, "id": id, "position": actor.position, "prompt": "[ E ]  %s%s" % [Residents.PEOPLE[id]["name"], " · продать руду" if kind == "trade" else (" · купить изделия" if kind == "market" else " · поговорить")]})
+		targets.append({"kind": kind, "id": id, "position": actor.position, "prompt": "[ E ]  %s%s" % [world_state.life.definitions[id]["name"], " · продать руду" if kind == "trade" else (" · купить изделия" if kind == "market" else " · поговорить")]})
 	if not selected_resident.is_empty():
 		for candidate in targets:
 			if candidate.get("id","")==selected_resident and candidate.kind=="dialogue" and _reachable(candidate.position):
@@ -697,6 +709,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if menu_session:
 		return
+	if event.is_action_pressed("spawn_resident_test") and time_ui.debug_enabled and not _modal_open():
+		_spawn_debug_resident()
+		get_viewport().set_input_as_handled()
+		return
 	if social_ui.direct and social_ui.window.visible:
 		for index in range(5):
 			if event.is_action_pressed("quick_%d"%(index+1) if index<4 else "dialogue_choice_5"):
@@ -755,6 +771,23 @@ func _unhandled_input(event: InputEvent) -> void:
 	else:
 		return
 	get_viewport().set_input_as_handled()
+
+func _spawn_debug_resident() -> void:
+	if world_state.location_id != "town":
+		return
+	for offset in [Vector2(48,0),Vector2(-48,0),Vector2(0,48),Vector2(0,-48),Vector2(96,0),Vector2(-96,0)]:
+		var point: Vector2 = player.position + offset
+		if not world_state.life.navigation.walkable(point):
+			continue
+		var clear := true
+		for resident in world_state.life.people.values():
+			if resident.location == "town" and resident.position.distance_to(point) < 36:
+				clear = false
+				break
+		if clear and not world_state.spawn_resident(point).is_empty():
+			_sync_residents(0.0, true)
+			time_ui.refresh(world_state.life, world_state.location_id, false)
+			return
 
 func close_windows() -> void:
 	ui.map_window.hide()
@@ -822,7 +855,7 @@ func _update_labels(target: Dictionary) -> void:
 	for id in resident_views:
 		var actor=resident_views[id]
 		var label: Label=actor.caption
-		var display_name: String=str(Residents.PEOPLE.get(id,{}).get("name",label.text))
+		var display_name: String=str(world_state.life.definitions.get(id,{}).get("name",label.text))
 		label.text=display_name if debug_labels else display_name.get_slice(" · ",0).replace(" (тест)","")
 		label.visible=actor.visible and (debug_labels or id==highlighted)
 		if not label.visible:

@@ -105,6 +105,20 @@ func toggle_debug() -> void:
 	residents_button.set_pressed_no_signal(debug_enabled)
 
 func refresh(life: RefCounted, player_location: String, modal: bool) -> void:
+	for index in range(picker.item_count - 1, -1, -1):
+		if not life.people.has(picker.get_item_metadata(index)):
+			picker.remove_item(index)
+	if not life.people.has(selected_id):
+		selected_id = str(life.people.keys()[0])
+	for id in life.people:
+		var found := false
+		for index in range(picker.item_count):
+			if picker.get_item_metadata(index) == id:
+				found = true
+				break
+		if not found:
+			picker.add_item(life.definitions[id].name)
+			picker.set_item_metadata(picker.item_count - 1, id)
 	if modal:
 		clock_panel.hide()
 	if clock_button != null:

@@ -16,10 +16,11 @@ var clock := Clock.new()
 var navigation := Navigation.new()
 var mine_navigation := Navigation.new(Mine.solid_rects(), Mine.MAP_SIZE)
 var people: Dictionary = {}
+var definitions: Dictionary = Definitions.PEOPLE.duplicate(true)
 
 func _init() -> void:
-	for id in Definitions.PEOPLE:
-		var definition: Dictionary = Definitions.PEOPLE[id]
+	for id in definitions:
+		var definition: Dictionary = definitions[id]
 		people[id] = {"position": definition["spawn"], "previous": definition["spawn"],
 			"id": id,
 			"location": "town", "hunger": 20.0, "fatigue": 15.0, "rest_need": 0.0,
@@ -29,6 +30,19 @@ func _init() -> void:
 			people[id]["activity"] = "walk"
 	people["test_miner"]["work_mode"] = "mine"
 	people["test_miner"]["work_site"] = "iron_01"
+
+func register(id: String, definition: Dictionary) -> bool:
+	if people.has(id) or not id.begins_with("resident_") or definition.get("profession", "") not in ["metalworker", "carrier", "mason", "guard", "scribe", "artisan"]:
+		return false
+	for key in ["spawn", "work", "home", "rest", "food", "errand"]:
+		if not definition.get(key) is Vector2 or not navigation.walkable(definition[key]):
+			return false
+	definitions[id] = definition.duplicate(true)
+	people[id] = {"position": definition.spawn, "previous": definition.spawn, "id": id,
+		"location": "town", "hunger": 0.0, "fatigue": 15.0, "rest_need": 0.0,
+		"task": "work", "activity": "work", "goal": definition.work, "reason": "schedule",
+		"next_decision": clock.minute + 5, "path": [], "work_minutes": 0, "sleep_minutes": 0, "meal_minutes": 0}
+	return true
 
 func advance(real_seconds: float, held: Array[String] = [], blocker := Vector2.INF, blocker_location: String = "town") -> void:
 	if clock.paused or real_seconds <= 0:
@@ -87,7 +101,7 @@ func goal_for(id: String, task: String, resident: Dictionary) -> Vector2:
 			return Mine.EXIT - Vector2(0, 64)
 		if task == "work" and resident["work_mode"] in ["deliver", "idle"]:
 			return Production.WORKBENCH
-	return Definitions.PEOPLE[id][Definitions.TASK_POINT[task]]
+	return definitions[id][Definitions.TASK_POINT[task]]
 
 func _transition_miner(resident: Dictionary) -> void:
 	if resident["position"].distance_to(resident["goal"]) > 0.1:
@@ -195,7 +209,14 @@ func to_save() -> Dictionary:
 			var point: Vector2 = resident[key]
 			resident[key] = [point.x, point.y]
 		saved[id] = resident
-	return {"clock": clock.to_save(), "people": saved}
+	var extra: Dictionary = {}
+	for id in definitions:
+		if not Definitions.PEOPLE.has(id):
+			var definition: Dictionary = definitions[id].duplicate(true)
+			for key in ["spawn", "work", "home", "rest", "food", "errand"]:
+				definition[key] = [definition[key].x, definition[key].y]
+			extra[id] = definition
+	return {"clock": clock.to_save(), "people": saved, "definitions": extra}
 
 ## Вызывается на новом экземпляре, до замены текущей симуляции.
 func load_data(data: Variant, legacy: bool = false) -> bool:
@@ -207,12 +228,29 @@ func load_data(data: Variant, legacy: bool = false) -> bool:
 	if not _number(time.get("speed"), 0.25, 60) or float(time["speed"]) not in Clock.SPEEDS or not time.get("paused") is bool:
 		return false
 	var saved: Dictionary = data["people"]
-	if saved.size() > Definitions.PEOPLE.size():
+	var extra = data.get("definitions", {})
+	if not extra is Dictionary or extra.size() > 200:
+		return false
+	for id in extra:
+		if not id is String or not id.begins_with("resident_") or id.length() > 40 or not extra[id] is Dictionary:
+			return false
+		var definition: Dictionary = extra[id].duplicate(true)
+		if not definition.get("name") is String or definition.name.length() > 64 or not _whole(definition.get("sprite"), 0, 7):
+			return false
+		definition.sprite = int(definition.sprite)
+		for key in ["spawn", "work", "home", "rest", "food", "errand"]:
+			var point = definition.get(key)
+			if not point is Array or point.size() != 2 or not _number(point[0], 0, 1824) or not _number(point[1], 0, 1248):
+				return false
+			definition[key] = Vector2(point[0], point[1])
+		if not register(id, definition):
+			return false
+	if saved.size() > definitions.size():
 		return false
 	for id in saved:
-		if not Definitions.PEOPLE.has(id):
+		if not definitions.has(id):
 			return false
-	for id in Definitions.PEOPLE:
+	for id in definitions:
 		if legacy and not saved.has(id):
 			continue
 		if not saved.get(id) is Dictionary:

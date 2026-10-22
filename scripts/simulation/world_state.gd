@@ -40,7 +40,11 @@ var facing_row := 0
 var resources: Dictionary = {}
 var life := ResidentSimulation.new()
 const Social = preload("res://scripts/simulation/social_simulation.gd")
+const ResidentFactory = preload("res://scripts/data/resident_factory.gd")
+const ConversationLanguage = preload("res://scripts/data/conversation_language.gd")
 var social := Social.new()
+var next_resident_id := 1
+var resident_seed := 7307
 
 var location_name: String = LocationData.LOCATION_NAME
 var npc_records: Dictionary = {
@@ -60,6 +64,33 @@ func _init() -> void:
 func _production_tick() -> void:
 	economy.tick(life, location_id, player_position)
 	social.tick(self)
+
+func spawn_resident(position: Vector2, profession: String = "metalworker", assignment: Dictionary = {}) -> String:
+	if life.clock.paused or location_id != "town" or not life.navigation.walkable(position):
+		return ""
+	var id := "resident_%06d" % next_resident_id
+	var generated: Dictionary = ResidentFactory.make(next_resident_id, resident_seed, position, profession, assignment)
+	var definition: Dictionary = generated.definition
+	for key in ["home", "rest", "food", "errand"]:
+		if not definition[key] is Vector2 or not life.navigation.walkable(definition[key]):
+			if assignment.has(key):
+				return ""
+			definition[key] = position
+	definition["profile"] = generated.profile
+	if not life.register(id, definition):
+		return ""
+	var profile: Dictionary = generated.profile.duplicate(true)
+	profile["display_name"] = definition.name
+	if not social.add_character(id, profile) or not economy.ledger.add_resident(id):
+		life.people.erase(id)
+		life.definitions.erase(id)
+		social.characters.erase(id)
+		social.relations.erase(id)
+		return ""
+	npc_records[id] = {"display_name": definition.name, "conversations": 0}
+	ConversationLanguage.extra_names[id] = {"name": definition.name}
+	next_resident_id += 1
+	return id
 
 func mine(deposit_id: String) -> int:
 	if not MineData.DEPOSITS.has(deposit_id) or int(resources.get(deposit_id, 0)) <= 0:
@@ -102,7 +133,9 @@ func to_save() -> Dictionary:
 	for id in npc_records:
 		dialogues[id] = npc_records[id]["conversations"]
 	return {
-		"version": 6,
+		"version": 7,
+		"resident_seed": resident_seed,
+		"next_resident_id": next_resident_id,
 		"cartography": cartography.to_save(),
 		"social": social.to_save(),
 		"rpg": rpg.to_save(),
@@ -121,7 +154,7 @@ func to_save() -> Dictionary:
 
 ## Проверяем весь документ до изменения текущей игры.
 func apply_save(data: Dictionary) -> bool:
-	if not _whole(data.get("version"), 1, 6):
+	if not _whole(data.get("version"), 1, 7):
 		return false
 	var restored_map:=Cartography.new()
 	if not restored_map.load_data(data.get("cartography",{})):
@@ -170,7 +203,7 @@ func apply_save(data: Dictionary) -> bool:
 	if not dialogues is Dictionary:
 		return false
 	for id in dialogues:
-		if not npc_records.has(id) or not _whole(dialogues[id], 0, 1000000000):
+		if not restored_life.people.has(id) or not _whole(dialogues[id], 0, 1000000000):
 			return false
 	var restored_inventory := Inventory.new()
 	for id in stacks:
@@ -179,6 +212,9 @@ func apply_save(data: Dictionary) -> bool:
 	for id in saved_resources:
 		restored_sources[id] = int(saved_resources[id])
 	var restored_economy := ProductionSimulation.new(restored_sources, restored_inventory, catalog)
+	for id in restored_life.people:
+		if not life.Definitions.PEOPLE.has(id) and not restored_economy.ledger.add_resident(id):
+			return false
 	if int(data["version"]) >= 3:
 		if not restored_economy.load_data(data.get("economy"), int(data["version"]) <= 5):
 			return false
@@ -209,6 +245,14 @@ func apply_save(data: Dictionary) -> bool:
 	var restored_social := Social.new()
 	if int(data["version"])>=6 and not restored_social.load_data(data.get("social"),restored_life,restored_economy.ledger):
 		return false
+	if int(data["version"]) >= 7:
+		if not _whole(data.get("resident_seed"),0,2147483647) or not _whole(data.get("next_resident_id"),1,1000000):
+			return false
+		for id in restored_life.people:
+			if id.begins_with("resident_") and (not id.trim_prefix("resident_").is_valid_int() or int(id.trim_prefix("resident_")) >= int(data.next_resident_id)):
+				return false
+		resident_seed = int(data.resident_seed)
+		next_resident_id = int(data.next_resident_id)
 	social=restored_social
 	rpg = restored_rpg
 	arena_combat = restored_combat
@@ -225,8 +269,18 @@ func apply_save(data: Dictionary) -> bool:
 	inventory = restored_inventory
 	resources = restored_sources
 	economy = restored_economy
+	for id in npc_records.keys():
+		if not restored_life.people.has(id):
+			npc_records.erase(id)
 	for id in npc_records:
 		npc_records[id]["conversations"] = int(dialogues.get(id, data["conversations"] if id == LocationData.NPC_ID else 0))
+	for id in restored_life.people:
+		if not npc_records.has(id):
+			npc_records[id] = {"display_name": restored_life.definitions[id].name, "conversations": int(dialogues.get(id, 0))}
+	ConversationLanguage.extra_names.clear()
+	for id in restored_life.definitions:
+		if not life.Definitions.PEOPLE.has(id):
+			ConversationLanguage.extra_names[id] = {"name": restored_life.definitions[id].name}
 	cartography=restored_map
 	life = restored_life
 	life.minute_advanced.connect(_production_tick)
