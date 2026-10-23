@@ -82,7 +82,7 @@ func menu() -> void:
 		if not asked.has("detail_"+str(current_event.id)):
 			choices.append({"id":"detail","text":"С чего началось ваше разногласие?" if current_event.kind in ["argue","discontent"] and npc_id in [current_event.actor,current_event.target] else "А что было перед этим?"})
 		if not asked.has("source_"+str(current_event.id)) and not asked.has("participant_"+str(current_event.id)):
-			choices.append({"id":"source","text":"Откуда вы об этом узнали?" if not current_event.get("witnessed",false) else "Вы были рядом, когда это случилось?" if npc_id not in [current_event.actor,current_event.target] else "Как вы ладите с %s?"%Language.name_form(str(current_event.target if current_event.actor==npc_id else current_event.actor),2)})
+			choices.append({"id":"source","text":"Откуда вы об этом узнали?" if not current_event.get("witnessed",false) else "Вы были рядом, когда это случилось?" if npc_id not in [current_event.actor,current_event.target] else "Как вы ладите с %s?"%Language.name_form(str(current_event.target if current_event.actor==npc_id else current_event.actor),2,state)})
 		if choices.size()<2 and not asked.has("participant_"+str(current_event.id)) and not choices.any(func(c:Dictionary):return c.id=="source"):
 			choices.append({"id":"participant","text":"А что скажете о другом участнике?"})
 		if current_event.kind in ["argue","discontent"] and npc_id in [current_event.actor,current_event.target] and choices.size()<3:
@@ -173,7 +173,7 @@ func choose(id: String) -> Dictionary:
 				asked["detail_"+str(event.id)]=true
 	elif id=="self":
 		line="Вы уже спрашивали. " if _already("self") else ""
-		line+=PORTRAITS.public_introduction(npc_id)
+		line+=PORTRAITS.public_introduction(npc_id,state)
 		if attitude.trust>=30:
 			line+=" Если понадобится совет по моему делу — приходите."
 		elif person.traits.sociability<30:
@@ -247,7 +247,7 @@ func refresh_state() -> void:
 	if topic=="response" and requested_event>0:
 		for memory in person.memory:
 			if memory.actor==npc_id and memory.kind in ["accept","refuse"] and int(memory.topic)==requested_event and int(memory.id)!=shown_reply:
-				line="С подготовкой я вам %s. Теперь вернусь к своим делам."%Language.past(npc_id,"помог","помогла") if memory.kind=="accept" else "Насчёт вашей просьбы... Простите, сейчас помочь не смогу."
+				line="С подготовкой я вам %s. Теперь вернусь к своим делам."%Language.past(npc_id,"помог","помогла",state) if memory.kind=="accept" else "Насчёт вашей просьбы... Простите, сейчас помочь не смогу."
 				shown_reply=int(memory.id)
 	if not position.get("awake",false) or position.get("location","")!=state.location_id or position.position.distance_to(state.player_position)>140:
 		line="Простите, мне нужно отдохнуть. Давайте поговорим в другой раз."

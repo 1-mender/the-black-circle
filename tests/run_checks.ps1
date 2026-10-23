@@ -35,6 +35,7 @@ $checks = @(
     @{Name='dark_map'; Args=@('--script','res://tests/dark_map_test.gd')},
     @{Name='minimal_menu'; Args=@('--script','res://tests/minimal_menu_test.gd')}
     @{Name='dynamic_residents'; Args=@('--script','res://tests/dynamic_resident_test.gd')},
+    @{Name='dynamic_conversation'; Args=@('--script','res://tests/dynamic_conversation_test.gd')},
     @{Name='p1_professions'; Args=@('--script','res://tests/p1_profession_test.gd')},
     @{Name='p1_professions_fresh'; Args=@('--script','res://tests/p1_profession_test.gd','--','--verify-save')},
     @{Name='p1_measure'; Args=@('--script','res://tests/p1_measure.gd')},

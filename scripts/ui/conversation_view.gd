@@ -102,11 +102,11 @@ static func panel_style(background: Color, border: Color, margin: int) -> StyleB
 func open(state: RefCounted, id: String) -> void:
 	session=Session.new()
 	session.start(state,id)
-	portrait.texture=load(Art.portrait_path(id))
-	portrait.tooltip_text=Art.portrait_note(id)
-	heading.text=Art.portrait_note(id)
+	portrait.texture=load(Art.portrait_path(id,state))
+	portrait.tooltip_text=Art.portrait_note(id,state)
+	heading.text=Art.portrait_note(id,state)
 	heading.visible=not heading.text.is_empty()
-	speaker.text=Session.Language.display_name(id)
+	speaker.text=Session.Language.display_name(id,state)
 	built_choices=""
 	show()
 	_layout()

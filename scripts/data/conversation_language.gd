@@ -2,6 +2,10 @@ extends RefCounted
 ## Presentation only: supported Russian name forms, never save IDs or biographies.
 const Definitions=preload("res://scripts/data/resident_definitions.gd")
 static var extra_names: Dictionary = {}
+static func definition_for(id: String, world: RefCounted = null) -> Dictionary:
+	if world != null and world.life.definitions.has(id):
+		return world.life.definitions[id]
+	return Definitions.PEOPLE.get(id, extra_names.get(id, {}))
 const FORMS={
 	"test_npc":["горожанин","горожанину","горожанином","горожанина"],
 	"test_smith":["кузнец","кузнецу","кузнецом","кузнеца"],
@@ -14,19 +18,19 @@ const FORMS={
 	"test_guard":["Эр","Эру","Эром","Эра"],
 	"test_recluse":["Ол","Олу","Олом","Ола"],
 	"test_mediator":["Лин","Лин","Лин","Лин"]}
-static func name_form(id: String, form: int=0) -> String:
+static func name_form(id: String, form: int=0, world: RefCounted=null) -> String:
 	if id=="player":
 		return ["вы","вам","вами","вас"][form]
-	var definition: Dictionary=Definitions.PEOPLE.get(id,extra_names.get(id,{}))
+	var definition: Dictionary=definition_for(id,world)
 	var forms: Array=definition.get("speech_names",FORMS.get(id,[]))
 	if forms.size()==4:
 		return str(forms[form])
 	# Unknown morphology: quoted names are indeclinable, rather than guessed endings.
 	return "«"+str(definition.get("name","собеседник")).get_slice(" · ",0).replace(" (тест)","")+"»"
-static func display_name(id: String) -> String:
-	var value:=name_form(id)
+static func display_name(id: String, world: RefCounted=null) -> String:
+	var value:=name_form(id,0,world)
 	return value.left(1).to_upper()+value.substr(1)
-static func female(id: String) -> bool:
-	return bool(Definitions.PEOPLE.get(id,{}).get("speech_female",id in ["test_apprentice","test_mediator"]))
-static func past(id: String, male: String, woman: String) -> String:
-	return woman if female(id) else male
+static func female(id: String, world: RefCounted=null) -> bool:
+	return bool(definition_for(id,world).get("speech_female",id in ["test_apprentice","test_mediator"]))
+static func past(id: String, male: String, woman: String, world: RefCounted=null) -> String:
+	return woman if female(id,world) else male

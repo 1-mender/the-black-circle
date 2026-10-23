@@ -191,7 +191,7 @@ func refresh() -> void:
 	var social=state.social
 	var known:=known_people()
 	var available: Array[String]=[]
-	for id in preload("res://scripts/data/resident_definitions.gd").PEOPLE:
+	for id in state.life.definitions:
 		if developer or id in known or (direct and id==selected_id):
 			available.append(id)
 	var listed: Array[String]=[]
@@ -220,7 +220,7 @@ func refresh() -> void:
 		journal.text="Нет известных событий."
 		return
 	if direct:
-		var index: int=preload("res://scripts/data/resident_definitions.gd").PEOPLE[selected_id].sprite
+		var index: int=int(state.life.definitions[selected_id].get("sprite",0))
 		var image:=AtlasTexture.new()
 		image.atlas=preload("res://asset/characters/Actor1.png")
 		image.region=Rect2((index%4)*144+48,floori(float(index)/4)*192,48,48)
@@ -244,15 +244,15 @@ func refresh() -> void:
 		var day:=floori(float(event.minute)/1440)+1
 		lines.append("День %d · %02d:%02d · %s\n%s → %s\n%s" % [day,floori(float(int(event.minute)%1440)/60),int(event.minute)%60,social.LABELS[event.kind],social.name_of(event.actor),social.name_of(event.target),event.consequence])
 		if not developer and event.get("subject","") in ["self","work","news_declined"]:
-			lines.append("В разговоре с "+Language.name_form(str(event.get("statement_source",event.target)),2)+":\n"+str(event.get("statement","")))
+			lines.append("В разговоре с "+Language.name_form(str(event.get("statement_source",event.target)),2,state)+":\n"+str(event.get("statement","")))
 		for informant in event.get("accounts",{}):
 			var account: Dictionary=event.accounts[informant]
-			lines.append("Со слов "+Language.name_form(informant,3)+{"account":" (рассказ очевидца)","rumour":" (пересказ, не проверен)","verified":" (совпадает с увиденным мной)"}.get(account.basis,"")+": "+"\n".join(account.get("statements",[account.statement])))
+			lines.append("Со слов "+Language.name_form(informant,3,state)+{"account":" (рассказ очевидца)","rumour":" (пересказ, не проверен)","verified":" (совпадает с увиденным мной)"}.get(account.basis,"")+": "+"\n".join(account.get("statements",[account.statement])))
 		if event.has("interpretation"):
 			if developer:
 				lines.append(event.interpretation)
 			elif not event.has("statement"):
-				lines.append("Видел собственными глазами" if event.witnessed else "Узнал от "+Language.name_form(event.source,3)+". Пока не проверено.")
+				lines.append("Видел собственными глазами" if event.witnessed else "Узнал от "+Language.name_form(event.source,3,state)+". Пока не проверено.")
 		if developer and event.get("misleading",false):
 			lines.append("Сознательное искажение. Исходное событие: "+str(social.LABELS.get(event.get("original_kind",""),"неизвестно")))
 		if developer and int(event.get("topic",0))>0:
@@ -283,7 +283,7 @@ func refresh() -> void:
 			card.text+="На виду: "+("Беседует" if state.life.people[selected_id].reason=="conversation" else str(preload("res://scripts/data/resident_definitions.gd").TASK_NAMES.get(state.life.people[selected_id].activity,"Занят делами")))+"\n\n"
 		for memory in social.characters.player.memory:
 			if selected_id in [memory.actor,memory.target]:
-				card.text+="%s: %s\n%s\n\n" % [social.LABELS[memory.kind],memory.get("statement",memory.consequence),"Сказано в беседе" if memory.has("statement") else "Видел собственными глазами" if memory.witnessed else "Узнал от "+Language.name_form(memory.source,3)+". Пока не проверено."]
+				card.text+="%s: %s\n%s\n\n" % [social.LABELS[memory.kind],memory.get("statement",memory.consequence),"Сказано в беседе" if memory.has("statement") else "Видел собственными глазами" if memory.witnessed else "Узнал от "+Language.name_form(memory.source,3,state)+". Пока не проверено."]
 	var pending: Dictionary=social.characters.player.pending
 	if not pending.is_empty():
 		card.text+="\nПросьба от "+social.name_of(pending.from)+": помочь трудом с подготовкой работы. Согласие стоит 6 выносливости и даёт до 2 подготовительных рабочих минут. Можно ответить рядом с просителем."
