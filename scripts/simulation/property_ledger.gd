@@ -39,6 +39,12 @@ func count(owner: String, item_id: String) -> int:
 		return 0
 	return owners[owner].count(item_id) if owners.has(owner) else 0
 
+func replenish_source(id: String, charges: int = 1) -> bool:
+	if not Mine.DEPOSITS.has(id) or charges <= 0 or int(sources.get(id, 0)) + charges > int(Mine.DEPOSITS[id].charges):
+		return false
+	sources[id] = int(sources[id]) + charges
+	return true
+
 func can_add(owner: String, item_id: String, amount: int) -> bool:
 	return owners.has(owner) and catalog.items.has(item_id) and amount > 0 and amount <= Inventory.MAX_COUNT - count(owner, item_id)
 

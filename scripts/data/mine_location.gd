@@ -8,6 +8,8 @@ const EXIT := Vector2(576, 768)
 const TOWN_ENTRANCE := Vector2(936, 240)
 const TOWN_RETURN := Vector2(936, 300)
 const SMITH_POSITION := Vector2(1152, 768)
+## Тестовое естественное пополнение: один подход к жиле за игровые сутки.
+const REGEN_MINUTES := 1440
 const DEPOSITS: Dictionary = {
 	"iron_01": {"position": Vector2(288, 288), "item_id": "test_iron_ore", "charges": 3, "yield": 2},
 	"iron_02": {"position": Vector2(816, 288), "item_id": "test_iron_ore", "charges": 2, "yield": 2},

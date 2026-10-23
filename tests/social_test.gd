@@ -161,7 +161,7 @@ func _ten_days(initial_seed: int, stock: int) -> Dictionary:
 			var cash:=0
 			for amount in state.economy.ledger.wallets.values():
 				cash+=int(amount)
-			conserved=conserved and state.economy.ledger.material_totals()==materials and cash==money
+			conserved=conserved and state.economy.ledger.material_totals()==state.economy.material_budget and cash==money and int(state.economy.material_budget.iron)>=int(materials.iron)
 	var bounded: bool=state.social.history.size()<=128
 	for person in state.social.characters.values():
 		bounded=bounded and person.memory.size()<=24 and person.summaries.size()<=8 and person.knowledge.size()<=12

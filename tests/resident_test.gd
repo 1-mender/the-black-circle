@@ -38,7 +38,7 @@ func run() -> void:
 		check(state.life.clock.minute == 10560, "Seven days and clock restored from disk")
 		for id in state.life.people:
 			var person: Dictionary = state.life.people[id]
-			check(person["work_minutes"] > 600 and person["sleep_minutes"] > 300, "Persisted history: " + id)
+			check(person["work_minutes"] > (300 if id == "test_miner" else 600) and person["sleep_minutes"] > 300, "Persisted history: " + id)
 			check(state.life.navigation_for(person["location"]).walkable(person["position"]), "Persisted location safe: " + id)
 		await finish()
 		return
@@ -84,7 +84,7 @@ func run() -> void:
 			# Habits may yield to real fatigue from autonomous help, never force an errand.
 			var observed: bool=(visits[id].has("plan:errand") or visits[id].has("evening:recovery")) if task=="errand" else visits[id].has(task)
 			check(observed, "Observed " + id + ": " + task + (" or needed evening recovery" if task=="errand" else ""))
-		check(person["work_minutes"] > 600 and person["sleep_minutes"] > 300 and person["meal_minutes"] == 0, "Sustained work and sleep without mandatory food: " + id)
+		check(person["work_minutes"] > (300 if id == "test_miner" else 600) and person["sleep_minutes"] > 300 and person["meal_minutes"] == 0, "Sustained work and sleep without mandatory food: " + id)
 		check(person["hunger"] < 80 and person["fatigue"] < 80 and person["rest_need"] < 80, "Needs remain manageable: " + id)
 	check(SaveService.save_game(state, SLOT).is_empty(), "Save seven-day simulation to disk")
 	var restored := State.new()

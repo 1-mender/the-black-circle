@@ -38,11 +38,11 @@ func frames(count: int = 3) -> void:
 
 func verify_final(state: RefCounted) -> void:
 	check(state.inventory.count("test_copper_trinket") == 1, "Purchased NPC-made product belongs to player")
-	check(state.economy.ledger.material_totals() == {"iron": 10, "copper": 3}, "All material conserved through cycle and purchase")
+	check(state.economy.ledger.material_totals() == state.economy.material_budget, "All mined and regenerated material is accounted for through cycle and purchase")
 	check(cash_total(state) == 700 and state.money == 2, "Trade money conserved with finite counterparty wallets")
 	for id in state.resources:
-		check(state.resources[id] == 0, "Source remains depleted: " + id)
-	check(state.economy.ledger.count("shop:test_merchant", "test_copper_trinket") == 2, "Merchant stock reduced by purchased unit")
+		check(state.resources[id] >= 0 and state.resources[id] <= Mine.DEPOSITS[id].charges, "Source stays within its capacity: " + id)
+	check(state.economy.ledger.count("shop:test_merchant", "test_copper_trinket") + state.inventory.count("test_copper_trinket") <= int(state.economy.produced.get("test_copper_trinket", 0)), "Merchant stock and purchased item derive from real production")
 
 func run() -> void:
 	var state := State.new()
@@ -66,7 +66,7 @@ func run() -> void:
 		seen["mine"] = seen["mine"] or state.life.people["test_miner"]["location"] == "mine"
 		for pair in [["miner_inventory", "npc:test_miner"], ["warehouse", "workshop"], ["escrow", "process:smith"], ["finished", "finished"], ["merchant_inventory", "npc:test_merchant"], ["shop", "shop:test_merchant"]]:
 			seen[pair[0]] = seen[pair[0]] or not ledger.owners[pair[1]].items.is_empty()
-		conserved = conserved and ledger.material_totals() == {"iron": 10, "copper": 3} and cash_total(state) == 700
+		conserved = conserved and ledger.material_totals() == state.economy.material_budget and cash_total(state) == 700
 		for amount in state.resources.values():
 			nonnegative = nonnegative and int(amount) >= 0
 		for owner in ["npc:test_miner", "npc:test_merchant"]:
@@ -82,25 +82,30 @@ func run() -> void:
 	check(nonnegative, "Shared deposits never become negative")
 	for stage in seen:
 		check(seen[stage], "Full cycle reaches stage: " + stage)
-	check(state.economy.ledger.count("shop:test_merchant", "test_iron_tool") == 4 and state.economy.ledger.count("shop:test_merchant", "test_copper_trinket") == 3, "NPC ore produces exactly four tools and three trinkets")
-	check(state.economy.mined == {"test_iron_ore": 10, "test_copper_ore": 3}, "Mining statistics match finite extraction including player")
+	check(state.economy.ledger.count("shop:test_merchant", "test_iron_tool") >= 4 and state.economy.ledger.count("shop:test_merchant", "test_copper_trinket") >= 3, "Renewed ore continues the established production chain")
+	check(int(state.economy.mined.test_iron_ore) + state.economy.ledger.count("source:iron_01", "test_iron_ore") + state.economy.ledger.count("source:iron_02", "test_iron_ore") == int(state.economy.material_budget.iron) and int(state.economy.mined.test_copper_ore) + state.economy.ledger.count("source:copper_01", "test_copper_ore") == int(state.economy.material_budget.copper), "Mining counters plus remaining source ore match all generated material")
 	var completed: Dictionary = state.economy.produced.duplicate()
+	var budget_before: Dictionary = state.economy.material_budget.duplicate()
 	advance(state, 1440)
-	check(state.economy.produced == completed and state.economy.jobs["smith"].is_empty(), "Exhaustion stops new production instead of creating free goods")
+	check(state.economy.produced != completed and int(state.economy.material_budget.iron) > int(budget_before.iron) and state.economy.ledger.material_totals() == state.economy.material_budget, "Production resumes from replenished ore without free goods")
+	var workshop_before: int = state.economy.ledger.count("workshop", "test_iron_ore")
 	check(state.sell("test_smith", "test_iron_ore", 2) == 10, "Existing ore sale transfers stock and money")
-	check(state.economy.ledger.count("workshop", "test_iron_ore") == 2, "Sold ore belongs to workshop instead of disappearing")
+	check(state.economy.ledger.count("workshop", "test_iron_ore") == workshop_before + 2, "Sold ore belongs to workshop instead of disappearing")
 	check(state.buy("test_merchant", "test_copper_trinket", 1) == 8, "Player buys actual NPC-made product")
 	verify_final(state)
 	before = state.to_save()
 	check(state.buy("test_merchant", "test_iron_tool", 1) == 0 and state.to_save() == before, "Insufficient money is atomic")
 	check(state.buy("test_merchant", "test_copper_trinket", 100) == 0 and state.to_save() == before, "Cannot buy more than finite shop stock")
-	check(state.mine("copper_01") == 0, "Player cannot mine an exhausted NPC-used source")
+	var remaining_copper: int = state.economy.ledger.count("source:copper_01", "test_copper_ore")
+	if remaining_copper > 0:
+		state.economy.ledger.transfer("source:copper_01", "player", "test_copper_ore", remaining_copper)
+	check(state.mine("copper_01") == 0, "Player cannot mine a presently exhausted source")
 	check(Service.save_game(state, SLOT).is_empty(), "Full economy saved to disk")
 	var restored := State.new()
 	check(Service.load_game(restored, SLOT).is_empty(), "Economic owners restored from disk")
 	check(restored.economy.to_save() == state.economy.to_save(), "Owners, cash, production counters and jobs restore exactly")
 	for _attempt in range(3):
-		check(Service.load_game(restored, SLOT).is_empty() and restored.economy.ledger.material_totals() == {"iron": 10, "copper": 3}, "Repeated load never duplicates goods")
+		check(Service.load_game(restored, SLOT).is_empty() and restored.economy.ledger.material_totals() == state.economy.material_budget, "Repeated load never duplicates goods")
 	var mid := State.new()
 	mid.mine("iron_01")
 	mid.economy.ledger.transfer("player", "workshop", "test_iron_ore", 2)

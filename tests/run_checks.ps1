@@ -17,6 +17,7 @@ $checks = @(
     @{Name='residents_fresh'; Args=@('--script','res://tests/resident_test.gd','--','--verify-save')},
     @{Name='load_input'; Args=@('--script','res://tests/load_input_test.gd')},
     @{Name='production'; Args=@('--script','res://tests/production_test.gd')},
+    @{Name='ore_regeneration'; Args=@('--script','res://tests/ore_regeneration_test.gd')},
     @{Name='production_fresh'; Args=@('--script','res://tests/production_test.gd','--','--verify-save')},
     @{Name='rpg'; Args=@('--script','res://tests/rpg_test.gd')},
     @{Name='combat'; Args=@('--script','res://tests/combat_test.gd')},

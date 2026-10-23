@@ -43,6 +43,20 @@ func register_worker(id: String, profession: String, legacy: bool = false) -> bo
 		jobs[id] = {}
 	return true
 
+func regenerate_deposits(minute: int) -> void:
+	if minute <= 0 or minute % Mine.REGEN_MINUTES != 0:
+		return
+	for site in Mine.DEPOSITS:
+		var deposit: Dictionary = Mine.DEPOSITS[site]
+		if int(ledger.sources[site]) >= int(deposit.charges):
+			continue
+		# The source is the Ledger's single stock, not a second ore inventory.
+		if not ledger.replenish_source(site):
+			continue
+		for material in catalog.items[deposit.item_id].material:
+			material_budget[material] = int(material_budget[material]) + int(deposit["yield"]) * int(catalog.items[deposit.item_id].material[material])
+		revision += 1
+
 func tick(life: RefCounted, player_location: String, player_position: Vector2) -> void:
 	# Delivery sees previous work, while rotating the first worker prevents a
 	# permanent ID-order monopoly on finite deposits and shared materials.

@@ -63,6 +63,7 @@ func _init() -> void:
 	life.minute_advanced.connect(_production_tick)
 
 func _production_tick() -> void:
+	economy.regenerate_deposits(life.clock.minute)
 	economy.tick(life, location_id, player_position)
 	social.tick(self)
 
